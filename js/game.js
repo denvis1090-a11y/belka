@@ -24,6 +24,17 @@ export function start(saved){
   else newGame();
 }
 
+// Запуск из сохранения, которое прошло проверку формы, но всё равно ломается: стираем его и начинаем заново,
+// иначе каждое открытие приложения показывало бы пустой экран
+export function startOrNew(saved){
+  try { start(saved); }
+  catch {
+    store.clearGame();
+    S = null;
+    start(null);
+  }
+}
+
 export function newGame(){
   const lang = S ? S.lang : store.loadLang();
   const { rules, level } = store.loadSettings();

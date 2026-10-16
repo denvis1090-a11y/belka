@@ -18,6 +18,7 @@ node tests/storage.test.mjs
 node tests/game.test.mjs
 node tests/manifest.test.mjs
 node tests/sw.test.mjs
+node tests/css.test.mjs
 ```
 
 `package.json` нужен только для того, чтобы Node читал файлы `js/*.js` как ES-модули. Зависимостей нет, `npm install` не нужен.

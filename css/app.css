@@ -216,7 +216,7 @@ select{font:14px var(--f-body);background:#1f2130;color:var(--ivory);border:1px 
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 
 /* Отдельная страница: безопасные зоны и поведение как у приложения (раньше отступы давала обёртка артефакта) */
-html{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);background:var(--room);overscroll-behavior:none}
+html{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);background:var(--room);overscroll-behavior:none;touch-action:manipulation}
 *,*::before,*::after{box-sizing:inherit}
 body{margin:0;overscroll-behavior:none;-webkit-text-size-adjust:100%}
 img{max-width:100%}

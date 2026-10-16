@@ -23,7 +23,7 @@ export function saveLang(l){ put(KEY_LANG, l); }
 
 export function isValidSave(o){
   const S = o && o.S;
-  return !!S && o.v === SAVE_VERSION && typeof S.phase === 'string' && !!S.rules && Array.isArray(S.eyes)
+  return !!S && o.v === SAVE_VERSION && typeof S.phase === 'string' && ['ru', 'kz'].includes(S.lang) && !!S.rules && Array.isArray(S.eyes)
     && !!S.d && Array.isArray(S.d.hands) && S.d.hands.length === 4;
 }
 export function loadGame(){

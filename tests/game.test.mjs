@@ -85,4 +85,54 @@ assert.equal(snap(), before, 'nothing moves while paused');
 G.setPaused(false);
 for (let i = 0; i < 5 && snap() === before; i++) step();
 assert.notEqual(snap(), before, 'bot moves after unpause');
+
+// 4. Сохранение правильной формы, но с испорченным содержимым, даёт новую партию, а не пустой экран
+mem['belka-save'] = 'kept';
+const broken = JSON.parse(JSON.stringify(G.getState())); broken.lang = 'xx';
+queue.clear();
+G.startOrNew(broken);
+assert.ok(['play', 'askRedeal', 'botRedeal'].includes(G.getState().phase), 'new game started: ' + G.getState().phase);
+assert.ok(['ru', 'kz'].includes(G.getState().lang), 'language falls back');
+assert.notEqual(mem['belka-save'], 'kept', 'broken save is cleared or overwritten');
+drive();
+
+// 5. Детерминированное восстановление фаз, которые случайные партии могут не встретить
+function fromPlay(){
+  G.start(null);
+  while (G.getState().phase !== 'play'){ if (!act(G.getState())) step(); }
+  return JSON.parse(JSON.stringify(G.getState()));
+}
+{ // askRedeal: открыто окно «Пересдать?», игрок выбирает «Играть»
+  const s = fromPlay(); s.phase = 'askRedeal'; s.ask = { kind: 'low', n: 11 };
+  queue.clear(); G.start(s);
+  assert.equal(G.getState().phase, 'askRedeal');
+  const turnBefore = G.getState().d.turn;
+  while (step()) {}
+  assert.equal(G.getState().phase, 'askRedeal', 'game waits for the human');
+  assert.equal(G.getState().d.turn, turnBefore);
+  G.keepHand(); assert.equal(G.getState().phase, 'play'); drive();
+}
+{ // askRedeal: игрок выбирает «Пересдать»
+  const s = fromPlay(); s.phase = 'askRedeal'; s.ask = { kind: 'suit', suit: 'H' };
+  queue.clear(); G.start(s); G.redeal();
+  assert.ok(['play', 'askRedeal', 'botRedeal', 'gameOver'].includes(G.getState().phase)); drive();
+}
+{ // botRedeal: таймер пересдачи бота запускается заново
+  const s = fromPlay(); s.phase = 'botRedeal'; s.msg = 'test';
+  const handBefore = JSON.stringify(s.d.hands);
+  queue.clear(); G.start(s);
+  assert.equal(G.getState().phase, 'botRedeal');
+  for (let i = 0; i < 5 && JSON.stringify(G.getState().d.hands) === handBefore; i++) step();
+  assert.notEqual(JSON.stringify(G.getState().d.hands), handBefore, 'bot redeal timer fired and dealt new cards');
+  drive();
+}
+{ // gameOver: итог виден, ходов больше нет, новая партия начинается
+  const s = fromPlay(); s.phase = 'gameOver'; s.result = { winner: 0, notes: [] }; s.eyes = [12, 3];
+  queue.clear(); G.start(s);
+  const before = JSON.stringify(G.getState().d.trick) + G.getState().d.turn;
+  while (step()) {}
+  assert.equal(G.getState().phase, 'gameOver');
+  assert.equal(JSON.stringify(G.getState().d.trick) + G.getState().d.turn, before, 'nothing moves after the game is over');
+  G.newGame(); assert.deepEqual(G.getState().eyes, [0, 0]); drive();
+}
 console.log('game tests passed');

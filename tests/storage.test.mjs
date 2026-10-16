@@ -17,7 +17,7 @@ assert.equal(s.level, 'strong');
 assert.equal(s.rules.hand, 8);
 
 // Сохранение и чтение партии
-const S = { phase: 'play', rules: s.rules, eyes: [1, 2], d: { hands: [[], [], [], []] } };
+const S = { phase: 'play', lang: 'ru', rules: s.rules, eyes: [1, 2], d: { hands: [[], [], [], []] } };
 St.saveGameNow(S);
 assert.deepEqual(St.loadGame(), S);
 assert.equal(JSON.parse(mem['belka-save']).v, St.SAVE_VERSION);
@@ -30,6 +30,10 @@ mem['belka-save'] = JSON.stringify({ v: 0, S });
 assert.equal(St.loadGame(), null);
 mem['belka-save'] = JSON.stringify({ v: 1, S: { phase: 'play' } });
 assert.equal(St.loadGame(), null);
+// Сохранение с неизвестным языком тоже считается испорченным
+mem['belka-save'] = JSON.stringify({ v: 1, S: { ...S, lang: 'xx' } });
+assert.equal(St.loadGame(), null);
+assert.equal(St.isValidSave({ v: 1, S: { ...S, lang: 'kz' } }), true);
 
 // Флаги
 assert.equal(St.getFlag('iosHint'), false);
