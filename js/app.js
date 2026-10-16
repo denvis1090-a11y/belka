@@ -25,3 +25,23 @@ if ('serviceWorker' in navigator && location.protocol !== 'file:'){
     document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') reg.update().catch(() => {}); });
   }).catch(() => { /* без офлайн-кеша игра всё равно работает */ });
 }
+
+// Android и компьютерный Chrome: своя кнопка «Установить» вместо системной плашки
+let deferredPrompt = null;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredPrompt = e;
+  ui.setChrome({ canInstall: true, onInstall: async () => {
+    const p = deferredPrompt; deferredPrompt = null;
+    ui.setChrome({ canInstall: false });
+    if (p){ p.prompt(); try { await p.userChoice; } catch { /* пользователь закрыл окно */ } }
+  } });
+});
+window.addEventListener('appinstalled', () => { deferredPrompt = null; ui.setChrome({ canInstall: false }); });
+
+// iPhone и iPad: системной кнопки нет, поэтому один раз подсказываем «Поделиться → На экран "Домой"»
+const standalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+if (isIOS && !standalone && !store.getFlag('iosHint')){
+  setTimeout(() => ui.setChrome({ iosHint: true, onIosHintClose: () => { store.setFlag('iosHint'); ui.setChrome({ iosHint: false }); } }), 20000);
+}
