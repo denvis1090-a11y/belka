@@ -1,0 +1,1081 @@
+<title>Белка</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@700;800&family=Oswald:wght@400;500;600&family=Rubik:wght@400;500;600&display=swap">
+<style>
+/* Layout: portrait-only app. A centred phone-shaped column holds a compact header (brand, actions, score sixes, trump plaque) and a vertical oval poker table laid out as a grid, so seats, trick and message never overlap; your hand fans over the near rail. A phone held sideways gets a rotate prompt. Single deliberate look. */
+:root{
+  --room:#0c0e12;
+  --room-glow:#1c2230;
+  --felt:#11936f;
+  --felt-hi:#18a982;
+  --felt-lo:#0b6e52;
+  --rail:#23253b;
+  --rail-hi:#3b3e60;
+  --stitch:rgba(226,172,74,.8);
+  --brass:#d6b160;
+  --brass-dim:#8f7336;
+  --ivory:#fbfaf5;
+  --ink:#16181b;
+  --red:#c3202b;
+  --back:#741326;
+  --us:#e7c15e;
+  --them:#7cc6d8;
+  --muted:#a9b3bf;
+  --line:rgba(214,177,96,.3);
+  --shade:rgba(0,0,0,.5);
+  --f-brand:"Unbounded","Arial Black",system-ui,sans-serif;
+  --f-label:"Oswald","Arial Narrow",system-ui,sans-serif;
+  --f-body:"Rubik",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --cw:clamp(40px,min(13.5vw,9vh),84px);
+  --ch:calc(var(--cw)*1.4);
+  color-scheme:dark;
+}
+html,body{height:100%}
+body{background:radial-gradient(80% 60% at 50% 45%,var(--room-glow) 0%,var(--room) 70%) var(--room);color:var(--ivory);font-family:var(--f-body);font-size:14px;overflow:hidden;-webkit-tap-highlight-color:transparent}
+#app{height:100%;display:flex;justify-content:center}
+.shell{width:min(100%,600px);height:100%;display:flex;flex-direction:column;min-height:0;container-type:size;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+/* Размер карт считается от самой колонки: и от ширины, и от высоты */
+@supports (width:1cqw){.shell{--cw:clamp(40px,min(13.5cqw,9cqh),84px)}}
+
+/* Header */
+.topbar{display:flex;align-items:center;gap:8px;padding-block:8px 6px}
+.brand{font:800 19px/1 var(--f-brand);letter-spacing:.03em;color:var(--brass);margin:0}
+.spacer{flex:1}
+.icon{width:36px;height:36px;display:grid;place-items:center;border:1px solid var(--line);border-radius:10px;background:transparent;color:var(--ivory);cursor:pointer;flex:none;padding:0}
+.icon svg{width:18px;height:18px}
+.lang{display:flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;height:36px}
+.lang button{font:500 11px var(--f-label);letter-spacing:.1em;background:transparent;color:var(--muted);border:0;padding:0 9px;cursor:pointer}
+.lang button[aria-pressed="true"]{background:var(--line);color:var(--brass)}
+.btn{font:500 13px var(--f-body);color:var(--ivory);background:transparent;border:1px solid var(--line);border-radius:10px;padding:9px 13px;cursor:pointer;min-height:40px}
+.btn.primary{background:linear-gradient(180deg,#e6c473,#c49a42);color:#1d1408;border-color:#e6c473;font-weight:600}
+@media (hover:hover){
+  .icon:hover,.btn:hover{border-color:var(--brass);color:var(--brass)}
+  .btn.primary:hover{background:linear-gradient(180deg,#f0d38a,#d2a84d);color:#1d1408}
+}
+.btn:focus-visible,.icon:focus-visible,.card:focus-visible,select:focus-visible,input:focus-visible,.lvl:focus-visible,.lang button:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
+
+.status{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:8px;padding-block:4px 8px;border-bottom:1px solid var(--line)}
+.score{display:flex;flex-direction:column;gap:4px;min-width:0}
+.score.them{align-items:flex-end}
+.score .tname{font:500 11px var(--f-label);letter-spacing:.14em;text-transform:uppercase}
+.score.us .tname{color:var(--us)}
+.score.them .tname{color:var(--them)}
+.score .srow{display:flex;align-items:center;gap:6px}
+.score.them .srow{flex-direction:row-reverse}
+.score .tnum{font:500 18px/1 var(--f-label);font-variant-numeric:tabular-nums}
+.score .tnum span{font-size:11px;color:var(--muted)}
+.sixes{display:flex}
+.sixes > *+*{margin-left:-7px;transform:rotate(5deg)}
+.six{width:24px;height:34px;border-radius:3px;background:var(--ivory);display:grid;grid-template-columns:1fr 1fr;grid-template-rows:repeat(3,1fr);place-items:center;padding:4px 3px;box-shadow:0 2px 4px rgba(0,0,0,.5);transform:rotate(-6deg)}
+.six i{font-style:normal;font-size:8px;line-height:1;color:#d7d1c3}
+.score.us .six i.on{color:var(--red)}
+.score.them .six i.on{color:var(--ink)}
+.plaque{display:flex;align-items:center;gap:7px;padding:4px 9px 4px 4px;border:1px solid var(--line);border-radius:10px;background:linear-gradient(180deg,rgba(214,177,96,.12),rgba(214,177,96,.03));min-width:0}
+.plaque .tile{width:30px;height:30px;border-radius:6px;background:var(--ivory);display:grid;place-items:center;font-size:20px;color:var(--ink);flex:none}
+.plaque .tile.r{color:var(--red)}
+.plaque .txt{display:flex;flex-direction:column;gap:2px;min-width:0;white-space:nowrap}
+.plaque .lbl{font:500 10px var(--f-label);letter-spacing:.12em;text-transform:uppercase;color:var(--brass);overflow:hidden;text-overflow:ellipsis}
+.plaque .pts{font:400 12px var(--f-label);letter-spacing:.03em;color:var(--muted);font-variant-numeric:tabular-nums}
+.plaque .pts b{color:var(--ivory);font-weight:500}
+
+/* Stage: the table takes the free height; the hand sits below and overlaps the near rail */
+.stage{flex:1;min-height:0;display:grid;grid-template-rows:minmax(0,1fr) auto;padding-top:10px}
+.table{position:relative;display:flex;min-height:0;margin-bottom:calc(var(--ch)*-.42);border-radius:50% / 24%;padding:clamp(10px,3.2cqw,20px);
+  background:radial-gradient(rgba(255,255,255,.035) 1px,transparent 1.3px) 0 0/3px 3px,radial-gradient(90% 110% at 50% 8%,var(--rail-hi),var(--rail) 55%,#141526);
+  box-shadow:0 24px 50px rgba(0,0,0,.6),inset 0 2px 0 rgba(255,255,255,.08),inset 0 -3px 6px rgba(0,0,0,.6)}
+.felt{position:relative;flex:1;min-height:0;min-width:0;border-radius:999px;
+  display:grid;grid-template-columns:auto minmax(0,1fr) auto;grid-template-rows:auto minmax(0,1fr) auto;
+  grid-template-areas:". top ." "left mid right" ". msg .";align-items:center;justify-items:center;gap:6px 4px;
+  padding:calc(var(--cw)*.36) 10px calc(var(--ch)*.42 + 12px);
+  background:repeating-linear-gradient(135deg,rgba(255,255,255,.045) 0 1px,transparent 1px 3px),radial-gradient(70% 60% at 50% 45%,var(--felt-hi) 0%,var(--felt) 60%,var(--felt-lo) 100%);
+  box-shadow:inset 0 0 0 1px rgba(0,0,0,.45),inset 0 6px 18px rgba(0,0,0,.35)}
+.felt::before{content:"";position:absolute;inset:6px;border-radius:999px;border:1.5px dashed var(--stitch);pointer-events:none}
+.felt::after{content:"";position:absolute;left:50%;top:47%;width:58%;aspect-ratio:2/1;transform:translate(-50%,-50%);opacity:.13;pointer-events:none;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 60'%3E%3Cg fill='none' stroke='%23000' stroke-width='3' stroke-linecap='round'%3E%3Cpath d='M60 58V34C60 12 38 4 28 14C20 22 28 34 38 29C44 26 42 18 36 19'/%3E%3Cpath d='M60 34C60 12 82 4 92 14C100 22 92 34 82 29C76 26 78 18 84 19'/%3E%3Cpath d='M60 34C52 30 44 40 50 46'/%3E%3Cpath d='M60 34C68 30 76 40 70 46'/%3E%3C/g%3E%3C/svg%3E") center/contain no-repeat}
+
+/* Seats */
+.seat{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:5px;min-width:0}
+.seat.top{grid-area:top}
+.seat.left{grid-area:left}
+.seat.right{grid-area:right}
+.plate{display:flex;align-items:center;gap:7px;background:rgba(0,0,0,.55);border:1px solid var(--line);border-radius:999px;padding:3px 10px 3px 3px;white-space:nowrap;max-width:100%}
+.seat.left .plate,.seat.right .plate{flex-direction:column;border-radius:14px;padding:6px 4px 5px;gap:3px;min-width:54px;max-width:72px}
+.ava{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font:500 14px var(--f-label);color:#1a1307;background:radial-gradient(circle at 35% 30%,#f6dd94,var(--us) 60%,#9c7c2c);box-shadow:0 0 0 2px rgba(0,0,0,.4);flex:none}
+.plate.them .ava{color:#082028;background:radial-gradient(circle at 35% 30%,#c6eef7,var(--them) 60%,#3b7f90)}
+.plate.turn .ava{box-shadow:0 0 0 2px var(--room),0 0 0 4px var(--brass),0 0 16px rgba(214,177,96,.7);animation:pulse 1.4s ease-in-out infinite}
+@keyframes pulse{50%{box-shadow:0 0 0 2px var(--room),0 0 0 4px var(--brass),0 0 4px rgba(214,177,96,.2)}}
+.pname{display:flex;flex-direction:column;line-height:1.15;font-size:12.5px;font-weight:500;min-width:0}
+.pname small{font:400 10px var(--f-label);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.seat.left .pname,.seat.right .pname{align-items:center;font-size:clamp(9.5px,2.9cqw,11px);max-width:100%}
+.seat.left .pname span,.seat.right .pname span{max-width:100%;overflow:hidden;text-overflow:ellipsis}
+.chips{display:flex;gap:3px}
+.dbtn,.tchip{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;font:600 10.5px var(--f-label);flex:none}
+.dbtn{background:var(--ivory);color:var(--ink);box-shadow:inset 0 0 0 2px #d6d0bf,0 1px 2px rgba(0,0,0,.5)}
+.tchip{font-size:12px;color:var(--ink);background:radial-gradient(circle,var(--ivory) 0 52%,transparent 54%),repeating-conic-gradient(var(--brass) 0 22.5deg,#fff6dc 22.5deg 45deg);box-shadow:0 1px 2px rgba(0,0,0,.5)}
+.tchip.r{color:var(--red)}
+
+.back{width:28px;height:39px;border-radius:4px;border:2px solid var(--ivory);box-shadow:0 2px 4px rgba(0,0,0,.45);flex:none;background:
+  radial-gradient(circle,var(--brass) 0 2.2px,transparent 2.8px) center/100% 100% no-repeat,
+  repeating-linear-gradient(45deg,transparent 0 3px,rgba(214,177,96,.45) 3px 4px),
+  repeating-linear-gradient(-45deg,transparent 0 3px,rgba(214,177,96,.45) 3px 4px),var(--back)}
+.fan{display:flex}
+.fan .back+.back{margin-left:-20px}
+.fan .back{transform:rotate(calc(var(--i) * 4deg - 14deg))}
+.stack{position:relative;display:block;width:28px;height:39px}
+.stack .back{position:absolute;inset:0}
+.stack .back:first-child{transform:rotate(-7deg) translate(-2px,1px)}
+.stack b{position:absolute;right:-8px;bottom:-6px;min-width:20px;height:20px;border-radius:10px;background:var(--ivory);color:var(--ink);font:600 11px/20px var(--f-label);text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.5)}
+
+/* Cards */
+.card{position:relative;width:var(--cw);height:var(--ch);border-radius:calc(var(--cw)*.08);background:var(--ivory);color:var(--ink);border:1px solid #d6d0c0;box-shadow:0 3px 8px rgba(0,0,0,.4);font-family:var(--f-label);padding:0;flex:none;overflow:hidden;-webkit-user-select:none;user-select:none}
+.card.r{color:var(--red)}
+.card .ix{position:absolute;top:3.5%;left:6%;display:flex;flex-direction:column;align-items:center;line-height:.92;font-weight:600;font-size:calc(var(--cw)*.23)}
+.card .ix s{text-decoration:none;font-size:calc(var(--cw)*.18);font-family:var(--f-body)}
+.card .ix.b{top:auto;left:auto;bottom:3.5%;right:6%;transform:rotate(180deg)}
+.card .pip{position:absolute;transform:translate(-50%,-50%);font-family:var(--f-body);font-size:calc(var(--cw)*.19);line-height:1}
+.card .pip.dn{transform:translate(-50%,-50%) rotate(180deg)}
+.card .ace{position:absolute;inset:0;display:grid;place-items:center;font-family:var(--f-body);font-size:calc(var(--cw)*.62)}
+.card .ace::before{content:"";position:absolute;width:62%;aspect-ratio:1;border-radius:50%;border:1px solid currentColor;opacity:.18}
+.card .court{position:absolute;inset:12% 15%;width:70%;height:76%}
+.card .star{position:absolute;top:4%;right:7%;font-size:calc(var(--cw)*.16);color:var(--brass-dim);font-family:var(--f-body)}
+.card.tr{box-shadow:0 0 0 2px var(--brass),0 3px 8px rgba(0,0,0,.4)}
+
+.seat.bottom{z-index:3;gap:4px;padding-bottom:6px}
+.hand{display:flex;justify-content:center;align-items:flex-end;padding-top:16px;max-width:100%}
+.hand .card+.card{margin-left:calc(var(--cw)*-.36)}
+.hand .card{transform-origin:50% 120%;transform:translateY(var(--dy)) rotate(var(--rot));transition:transform .16s ease,opacity .15s}
+button.card{cursor:pointer;touch-action:manipulation}
+@media (hover:hover){button.card.ok:hover{transform:translateY(calc(var(--dy) - 16px)) rotate(var(--rot))}}
+button.card.ok:focus-visible{transform:translateY(calc(var(--dy) - 16px)) rotate(var(--rot))}
+button.card.no{opacity:.45;cursor:not-allowed;filter:saturate(.35) brightness(.85)}
+.hand.idle button.card{cursor:default}
+.hand .card.deal{animation:deal .42s cubic-bezier(.2,.7,.3,1) backwards;animation-delay:calc(var(--i) * 45ms)}
+@keyframes deal{from{translate:var(--dx) var(--dyy);opacity:0}}
+
+.mid{grid-area:mid;align-self:stretch;justify-self:stretch;display:grid;place-items:center;min-height:0}
+.trick{position:relative;width:calc(var(--cw)*2.9);height:calc(var(--ch)*2.05)}
+.slot{position:absolute}
+.slot.p0{bottom:0;left:50%;transform:translateX(-50%)}
+.slot.p2{top:0;left:50%;transform:translateX(-50%)}
+.slot.p1{left:0;top:50%;transform:translateY(-50%)}
+.slot.p3{right:0;top:50%;transform:translateY(-50%)}
+.slot .card{rotate:var(--tilt)}
+.slot .card.fly{animation:fly .32s cubic-bezier(.2,.7,.3,1)}
+.slot.p0 .card{--fx:0;--fy:160%}
+.slot.p2 .card{--fx:0;--fy:-160%}
+.slot.p1 .card{--fx:-160%;--fy:0}
+.slot.p3 .card{--fx:160%;--fy:0}
+.slot.win .card{box-shadow:0 0 0 3px var(--brass),0 8px 18px rgba(0,0,0,.55)}
+@keyframes fly{from{translate:var(--fx) var(--fy);opacity:0}}
+.trick.sweep .card{animation:sweep .38s ease-in forwards}
+.trick.to0 .card{--sx:0;--sy:240%} .trick.to2 .card{--sx:0;--sy:-240%}
+.trick.to1 .card{--sx:-200%;--sy:0} .trick.to3 .card{--sx:200%;--sy:0}
+@keyframes sweep{to{translate:var(--sx) var(--sy);opacity:0;scale:.7}}
+.msg{grid-area:msg;position:relative;z-index:2;background:rgba(0,0,0,.6);border:1px solid var(--line);padding:5px 13px;border-radius:999px;font-size:12.5px;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+.msg.empty{visibility:hidden}
+
+/* Rotate prompt for phones held sideways */
+.rotate{display:none}
+@media (orientation:landscape) and (max-height:520px){
+  .shell{visibility:hidden}
+  .rotate{display:grid;position:fixed;inset:0;z-index:20;place-items:center;align-content:center;gap:14px;text-align:center;background:var(--room);
+    padding:max(20px,env(safe-area-inset-top,0px)) max(24px,env(safe-area-inset-right,0px)) max(20px,env(safe-area-inset-bottom,0px)) max(24px,env(safe-area-inset-left,0px))}
+  .rotate svg{width:56px;height:56px;color:var(--brass)}
+  .rotate p{margin:0;max-width:34ch;line-height:1.45;color:var(--ivory)}
+}
+
+/* Overlay */
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.66);display:grid;place-items:center;z-index:5;
+  padding:max(20px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(20px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.panel{background:linear-gradient(180deg,#1a1b26,#11121a);border:1px solid var(--line);border-radius:16px;padding:20px;width:min(460px,100%);max-height:100%;overflow:auto;display:flex;flex-direction:column;gap:14px;box-shadow:0 24px 60px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.05)}
+.panel.wide{width:min(560px,100%)}
+.panel h2{font:700 19px var(--f-brand);margin:0;color:var(--brass);text-wrap:balance}
+.panel h3{font:500 11px var(--f-label);letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin:4px 0 0}
+.panel p{margin:0;line-height:1.5}
+.panel ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:7px;line-height:1.45}
+.panel .row{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+.res{display:grid;grid-template-columns:1fr auto auto;gap:6px 14px;font-variant-numeric:tabular-nums;align-items:baseline}
+.res .h{font:500 10px var(--f-label);letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.res .us{color:var(--us)} .res .them{color:var(--them)}
+.res b{font:500 22px var(--f-label)}
+.notes{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--muted)}
+.notes .big{color:var(--ivory);font-size:15px;font-weight:500}
+
+/* Settings */
+.levels{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.lvl{display:flex;flex-direction:column;gap:3px;text-align:left;font:inherit;color:var(--ivory);background:transparent;border:1px solid var(--line);border-radius:10px;padding:9px 10px;cursor:pointer}
+.lvl b{font-weight:600;font-size:13px}
+.lvl span{font-size:11.5px;color:var(--muted);line-height:1.3}
+.lvl[aria-pressed="true"]{border-color:var(--brass);background:rgba(214,177,96,.1)}
+.lvl[aria-pressed="true"] b{color:var(--brass)}
+@media (max-width:480px){.levels{grid-template-columns:1fr}}
+.opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px 16px}
+.fld{display:flex;flex-direction:column;gap:5px;font-size:12px;color:var(--muted);min-width:0}
+select{font:14px var(--f-body);background:#1f2130;color:var(--ivory);border:1px solid var(--line);border-radius:8px;padding:9px 10px;width:100%;min-height:40px}
+.chk{display:flex;gap:9px;align-items:flex-start;font-size:13px;color:var(--ivory);line-height:1.35;cursor:pointer;min-height:24px}
+.chk input{accent-color:var(--brass);width:18px;height:18px;margin:0;flex:none}
+.chk.off{opacity:.45;cursor:default}
+.note{font-size:12px;color:var(--muted)}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<div id="app"></div>
+
+<script>
+(() => {
+const SYM = {C:'♣',S:'♠',H:'♥',D:'♦'};
+const RED = {H:1,D:1};
+const ALL_RANKS = ['7','8','9','10','J','Q','K','A'];
+const PTS = {A:11,'10':10,K:4,Q:3,J:2};
+const ORDER = {'7':1,'8':2,'9':3,Q:4,K:5,'10':6,A:7};
+const JR = {C:4,S:3,H:2,D:1};
+const LABEL = {'7':'7','8':'8','9':'9','10':'10',J:'В',Q:'Д',K:'К',A:'Т'};
+const SEAT = ['bottom','left','top','right'];
+
+function buildDeck(n){ const rs = n === 7 ? ALL_RANKS.slice(1) : ALL_RANKS; const out = []; for (const s of 'CSHD') for (const r of rs) out.push({s,r}); return out; }
+const DECKS = {8: buildDeck(8), 7: buildDeck(7)};
+
+/* Наборы правил. Названия описывают сами правила: региональные имена добавим, когда будут известны. */
+const PRESETS = {
+  classic:{dir:'cw', hand:8, aceRule:true,  eggs:'four',   redeal:true, redealEye:true, spas:true, golaya:true, firstDeal2:true},
+  ccw:    {dir:'ccw',hand:8, aceRule:false, eggs:'four',   redeal:true, redealEye:true, spas:true, golaya:true, firstDeal2:true},
+  short:  {dir:'cw', hand:7, aceRule:true,  eggs:'double', redeal:true, redealEye:true, spas:true, golaya:true, firstDeal2:true}
+};
+const RULE_KEYS = Object.keys(PRESETS.classic);
+function presetOf(r){ for (const k in PRESETS) if (RULE_KEYS.every(x => PRESETS[k][x] === r[x])) return k; return 'custom'; }
+
+const T = {
+  ru:{
+    sub:'карточная игра Казахстана', newGame:'Новая партия', rules:'Правила', settings:'Настройки', trump:'Козырь',
+    us:'Мы', them:'Они', names:['Вы','Ерлан','Айгерім','Бауыржан'],
+    dealer:'сдаёт', partner:'партнёр', yourSuit:'ваша масть', firstDeal:'1-я раздача',
+    trumpOf:t=>`у команды «${t}»`, pts:'очки', tricks:'взятки',
+    yourTurn:'Ваш ход', moving:n=>`Ходит ${n}…`, takes:(n,p)=>`${n} забирает взятку${p?` · ${p} оч.`:''}`,
+    mustFollow:'Нужно ходить в масть', noAce:'Туза нельзя сбрасывать в масть, в которую ещё не ходили',
+    announce:(n,s)=>`${n} объявляет козырь ${s}`, firstTrump:'Первая раздача — козырь ♣',
+    reasonLow:n=>`на руке всего ${n} оч.`, reasonSuit:'пять карт одной масти',
+    askRedeal:r=>`У вас ${r}${r.endsWith(".")?"":"."} Можно пересдать.`, redeal:'Пересдать', play:'Играть',
+    botRedeal:(n,r)=>`${n} просит пересдачу: ${r}`, threeRedeals:'Три пересдачи подряд — команде сдающего +1 глаз',
+    dealEnd:'Итоги раздачи', next:'Следующая раздача', pointsH:'очки', tricksH:'взятки',
+    eggs:'Яйца! 60 на 60 — глаза не открываются',
+    eggsNextFour:'Следующая раздача стоит 4 глаза', eggsNextDouble:'В следующей раздаче глаза удваиваются',
+    eggsPaid:'Отыграны «яйца» — ровно 4 глаза', eggsDoubled:'Отыграны «яйца» — глаза ×2', firstDealN:'Первая раздача — ровно 2 глаза',
+    ownTrump:'Козырь был свой — 1 глаз', foreignTrump:'Козырь был у соперника — 2 глаза',
+    spas:'Соперник не спасся (меньше 30) — ещё +1',
+    gets:(t,n)=>`${t}: +${n} ${eyeWord(n)}`,
+    golaya:'Голая! Все взятки — партия выиграна сразу', golayaPlain:'Голая! Все взятки',
+    win:'Победа!', lose:'Поражение', finalScore:(a,b)=>`Счёт по глазам ${a} : ${b}`,
+    eyesWord:'глаз', of12:'из 12',
+    rulesTitle:'Правила белки',
+    rulesList:R=>[
+      `Играют четверо, двое на двое. Вы и Айгерім — одна команда. ${R.hand===8?'В колоде 32 карты, по 8 на руку':'Колода без семёрок: 28 карт, по 7 на руку'}, шестёрки идут на счёт. Ход идёт ${R.dir==='cw'?'по часовой стрелке':'против часовой стрелки'}.`,
+      'Очки карт: Т — 11, 10 — 10, К — 4, Д — 3, В — 2. Всего в колоде 120 очков.',
+      'Вальты всегда козыри и старше козырной масти: В♣ > В♠ > В♥ > В♦. Затем козырная масть: Т, 10, К, Д, 9, 8, 7.',
+      'В первой раздаче козырь ♣. Кому пришёл В♣, за тем закрепляются ♣, за партнёром ♠, за следующим по ходу игроком ♥, за предыдущим ♦. Дальше козырь объявляет тот, у кого В♣ — свою масть.',
+      `Ходить нужно в масть. Нет масти — можно зарубить козырем или слить любую карту. ${R.aceRule?'Туза нельзя сливать в масть, в которую ещё не ходили.':'Туза можно сливать в любую масть.'}`,
+      `Больше 60 очков — раздача ваша: 1 глаз, если козырь был у вашей команды, 2 — если у соперника.${R.firstDeal2?' Первая раздача — ровно 2 глаза, без надбавок.':''}${R.spas?' Соперник набрал меньше 30 («не спасся») — ещё +1.':''}`,
+      `60 на 60 — «яйца»: глаза не открываются, ${R.eggs==='four'?'следующая раздача стоит ровно 4 глаза, без надбавок':'в следующей раздаче глаза удваиваются'}.`,
+      `12 глаз — победа в партии.${R.golaya?' Все взятки — «голая», победа сразу.':''}`,
+      R.redeal ? `Пересдача: на руке 13 очков и меньше или пять карт одной масти (вальты не считаются).${R.redealEye?' Три пересдачи подряд — глаз команде сдающего.':''}` : 'Пересдачи нет: играют с любой рукой.'
+    ],
+    close:'Понятно',
+    rotate:'Поверните телефон вертикально: в «Белку» играют, держа телефон прямо.',
+    level:'Сила ботов',
+    levels:{easy:['Новичок','Смотрит только на текущую взятку'], strong:['Опытный','Помнит вышедшие карты и пустые масти, прикидывает расклады'], master:['Мастер','Доигрывает десятки возможных раскладов перед каждым ходом']},
+    rulesSet:'Набор правил',
+    presets:{classic:'Классика (как в Циклопедии)', ccw:'Против часовой, туз свободно', short:'Без семёрок, по 7 карт', custom:'Свои правила'},
+    dir:'Направление хода', dirs:{cw:'По часовой стрелке', ccw:'Против часовой стрелки'},
+    hand:'Колода', hands:{8:'32 карты, по 8 на руку', 7:'28 карт без семёрок, по 7'},
+    eggsOpt:'Как отыгрываются «яйца»', eggsOpts:{four:'Следующая раздача — ровно 4 глаза', double:'Глаза следующей раздачи ×2'},
+    opt:{aceRule:'Нельзя сливать туза в масть, в которую ещё не ходили', spas:'«Спас»: +1 глаз, если у соперника меньше 30', firstDeal2:'Первая раздача — ровно 2 глаза', golaya:'«Голая» — сразу победа в партии', redeal:'Пересдача при слабой руке', redealEye:'Глаз сдающим за 3 пересдачи подряд'},
+    setNote:'Правила меняются только с новой партии. Силу ботов можно сменить сразу.',
+    save:'Сохранить', applyNew:'Начать новую партию', cancel:'Отмена'
+  },
+  kz:{
+    sub:'Қазақстанның карта ойыны', newGame:'Жаңа ойын', rules:'Ереже', settings:'Баптаулар', trump:'Көзір',
+    us:'Біз', them:'Олар', names:['Сіз','Ерлан','Айгерім','Бауыржан'],
+    dealer:'таратушы', partner:'серік', yourSuit:'сіздің түс', firstDeal:'1-тарату',
+    trumpOf:t=>`«${t}» командасында`, pts:'ұпай', tricks:'алым',
+    yourTurn:'Сіздің жүрісіңіз', moving:n=>`${n} жүреді…`, takes:(n,p)=>`${n} алымды алады${p?` · ${p} ұпай`:''}`,
+    mustFollow:'Түске жүру керек', noAce:'Әлі жүрілмеген түстің тұзын тастауға болмайды',
+    announce:(n,s)=>`${n} көзірді жариялайды: ${s}`, firstTrump:'Бірінші тарату — көзір ♣',
+    reasonLow:n=>`қолда небәрі ${n} ұпай`, reasonSuit:'бір түстің бес картасы',
+    askRedeal:r=>`Сізде ${r}. Қайта таратуға болады.`, redeal:'Қайта тарату', play:'Ойнау',
+    botRedeal:(n,r)=>`${n} қайта таратуды сұрайды: ${r}`, threeRedeals:'Қатарынан үш рет қайта таратылды — таратушы командаға +1 көз',
+    dealEnd:'Тарату қорытындысы', next:'Келесі тарату', pointsH:'ұпай', tricksH:'алым',
+    eggs:'Жұмыртқа! 60-қа 60 — көз ашылмайды',
+    eggsNextFour:'Келесі тарату 4 көз тұрады', eggsNextDouble:'Келесі таратуда көз екі есе',
+    eggsPaid:'«Жұмыртқа» ойналды — дәл 4 көз', eggsDoubled:'«Жұмыртқа» ойналды — көз ×2', firstDealN:'Бірінші тарату — дәл 2 көз',
+    ownTrump:'Көзір өздеріңде болды — 1 көз', foreignTrump:'Көзір қарсыласта болды — 2 көз',
+    spas:'Қарсылас құтыла алмады (30-дан аз) — тағы +1',
+    gets:(t,n)=>`${t}: +${n} көз`,
+    golaya:'Жалаңаш! Барлық алым — ойын бірден ұтылды', golayaPlain:'Жалаңаш! Барлық алым',
+    win:'Жеңіс!', lose:'Жеңіліс', finalScore:(a,b)=>`Көз есебі ${a} : ${b}`,
+    eyesWord:'көз', of12:'12-ден',
+    rulesTitle:'Белка ережесі',
+    rulesList:R=>[
+      `Төрт адам ойнайды, екеуге екеу. Сіз және Айгерім — бір команда. ${R.hand===8?'Колодада 32 карта, әрқайсысына 8-ден':'Жетіліксіз колода: 28 карта, әрқайсысына 7-ден'}, алтылықтар есепке қолданылады. Жүріс ${R.dir==='cw'?'сағат тілімен':'сағат тіліне қарсы'} жүреді.`,
+      'Карта ұпайлары: Т — 11, 10 — 10, К — 4, Д — 3, В — 2. Колодада барлығы 120 ұпай.',
+      'Валеттер әрқашан көзір және көзір түстен жоғары: В♣ > В♠ > В♥ > В♦. Одан кейін көзір түс: Т, 10, К, Д, 9, 8, 7.',
+      'Бірінші таратуда көзір ♣. В♣ кімге түссе, ♣ соған бекітіледі, серігіне ♠, жүріс бойынша келесі ойыншыға ♥, алдыңғыға ♦. Әрі қарай В♣ кімде болса, сол өз түсін көзір етеді.',
+      `Түске жүру міндетті. Ол түс болмаса — көзірмен ұруға немесе кез келген картаны тастауға болады. ${R.aceRule?'Әлі жүрілмеген түстің тұзын тастауға болмайды.':'Тұзды кез келген түске тастауға болады.'}`,
+      `60-тан көп ұпай — тарату сіздікі: көзір өз командаңызда болса 1 көз, қарсыласта болса 2 көз.${R.firstDeal2?' Бірінші тарату — қосымшасыз дәл 2 көз.':''}${R.spas?' Қарсылас 30-дан аз жинаса — тағы +1.':''}`,
+      `60-қа 60 — «жұмыртқа»: көз ашылмайды, ${R.eggs==='four'?'келесі тарату қосымшасыз дәл 4 көз тұрады':'келесі таратуда көз екі есе болады'}.`,
+      `12 көз — ойындағы жеңіс.${R.golaya?' Сегіз алымның бәрі — «жалаңаш», бірден жеңіс.':''}`,
+      R.redeal ? `Қайта тарату: қолда 13 не одан аз ұпай немесе бір түстің бес картасы (валеттер саналмайды).${R.redealEye?' Қатарынан үш қайта тарату — таратушы командаға бір көз.':''}` : 'Қайта тарату жоқ: кез келген қолмен ойнайды.'
+    ],
+    close:'Түсінікті',
+    rotate:'Телефонды тігінен ұстаңыз: «Белка» тік күйде ойналады.',
+    level:'Боттардың деңгейі',
+    levels:{easy:['Жаңадан бастаушы','Тек ағымдағы алымға қарайды'], strong:['Тәжірибелі','Шыққан карталар мен бос түстерді есте сақтайды'], master:['Шебер','Әр жүріс алдында ондаған таратуды ойнап көреді']},
+    rulesSet:'Ереже жинағы',
+    presets:{classic:'Классика (Циклопедия бойынша)', ccw:'Сағатқа қарсы, тұз еркін', short:'Жетіліксіз, 7 картадан', custom:'Өз ережем'},
+    dir:'Жүріс бағыты', dirs:{cw:'Сағат тілімен', ccw:'Сағат тіліне қарсы'},
+    hand:'Колода', hands:{8:'32 карта, 8-ден', 7:'28 карта жетіліксіз, 7-ден'},
+    eggsOpt:'«Жұмыртқа» қалай ойналады', eggsOpts:{four:'Келесі тарату — дәл 4 көз', double:'Келесі тарату көзі ×2'},
+    opt:{aceRule:'Жүрілмеген түске тұз тастауға болмайды', spas:'«Құтылу»: қарсылас 30-дан аз болса +1 көз', firstDeal2:'Бірінші тарату — дәл 2 көз', golaya:'«Жалаңаш» — бірден жеңіс', redeal:'Әлсіз қолда қайта тарату', redealEye:'Қатарынан 3 қайта тарату үшін таратушыға көз'},
+    setNote:'Ереже тек жаңа ойыннан бастап өзгереді. Боттардың деңгейін бірден ауыстыруға болады.',
+    save:'Сақтау', applyNew:'Жаңа ойын бастау', cancel:'Болдырмау'
+  }
+};
+function eyeWord(n){const m10=n%10,m100=n%100;if(m10===1&&m100!==11)return'глаз';if(m10>=2&&m10<=4&&(m100<10||m100>=20))return'глаза';return'глаз';}
+
+/* ================= Движок раздачи (чистые функции над объектом d) ================= */
+const team = p => p % 2;
+const id = c => c.r + c.s;
+const pts = c => PTS[c.r] || 0;
+const pow = c => c.r === 'J' ? 20 + JR[c.s] : ORDER[c.r];
+const stepOf = dir => dir === -1 ? 3 : 1;
+const nextP = (d, p) => (p + stepOf(d.dir)) % 4;
+const eff = (d, c) => (c.r === 'J' || c.s === d.trump) ? 'T' : c.s;
+function score(d, c, L){ const e = eff(d, c); return e === 'T' ? 100 + pow(c) : e === L ? pow(c) : -1; }
+
+function shuffle(a){ for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
+function sortHand(d, h){
+  const so = {C:0,H:1,S:2,D:3};
+  return h.sort((a,b)=>{
+    const ta = eff(d,a)==='T', tb = eff(d,b)==='T';
+    if (ta !== tb) return ta ? -1 : 1;
+    if (ta) return pow(b) - pow(a);
+    if (a.s !== b.s) return so[a.s] - so[b.s];
+    return pow(b) - pow(a);
+  });
+}
+
+function makeDeal(rules, dealer, suitOf){
+  const deck = shuffle(DECKS[rules.hand].slice());
+  const d = { dir: rules.dir === 'ccw' ? -1 : 1, aceRule: rules.aceRule, size: rules.hand,
+    hands:[[],[],[],[]], trick:[], ledSuits:[], played:[], taken:[0,0], tricksCount:[0,0],
+    voids:[{},{},{},{}], lastWin:null };
+  let p = dealer;
+  while (deck.length){ p = nextP(d, p); d.hands[p].push(deck.pop()); }
+  d.holder = d.hands.findIndex(h => h.some(c => c.r==='J' && c.s==='C'));
+  d.trump = suitOf ? suitOf[d.holder] : 'C';
+  d.trumpTeam = team(d.holder);
+  d.hands.forEach(h => sortHand(d, h));
+  d.turn = d.leader = nextP(d, dealer);
+  return d;
+}
+
+function legal(d, p){
+  const hand = d.hands[p];
+  if (!d.trick.length) return hand.slice();
+  const L = eff(d, d.trick[0].c);
+  const follow = hand.filter(c => eff(d,c) === L);
+  if (follow.length) return follow;
+  if (!d.aceRule) return hand.slice();
+  const ok = hand.filter(c => !(c.r==='A' && eff(d,c)!=='T' && !d.ledSuits.includes(c.s)));
+  return ok.length ? ok : hand.slice();
+}
+
+function winnerSoFar(d){
+  const L = eff(d, d.trick[0].c);
+  let best = d.trick[0];
+  for (const e of d.trick) if (score(d,e.c,L) > score(d,best.c,L)) best = e;
+  return best;
+}
+
+// Кладёт карту; возвращает true, когда взятка собрана из четырёх карт.
+function applyPlay(d, p, c){
+  const h = d.hands[p];
+  h.splice(h.findIndex(x => x.r===c.r && x.s===c.s), 1);
+  if (d.trick.length){ const L = eff(d, d.trick[0].c); if (eff(d,c) !== L) d.voids[p][L] = 1; }
+  else { const e = eff(d,c); if (!d.ledSuits.includes(e)) d.ledSuits.push(e); }
+  d.trick.push({p, c}); d.played.push(c);
+  if (d.trick.length === 4){ d.lastWin = winnerSoFar(d).p; return true; }
+  d.turn = nextP(d, p);
+  return false;
+}
+function collect(d){
+  const w = d.lastWin, k = team(w);
+  d.taken[k] += d.trick.reduce((a,e)=>a+pts(e.c),0);
+  d.tricksCount[k]++;
+  d.trick = []; d.turn = d.leader = w; d.lastWin = null;
+}
+const handsEmpty = d => d.hands.every(h => !h.length);
+
+function eligible(d, p){
+  const h = d.hands[p];
+  const sum = h.reduce((a,c)=>a+pts(c),0);
+  if (sum <= 13) return {kind:'low', n:sum};
+  const cnt = {};
+  h.forEach(c => { if (c.r!=='J') cnt[c.s] = (cnt[c.s]||0) + 1; });
+  for (const s in cnt) if (cnt[s] >= 5) return {kind:'suit', suit:s};
+  return null;
+}
+
+/* ================= Боты ================= */
+function highestLeft(d, s){
+  const gone = new Set(d.played.map(id));
+  let best = null;
+  for (const c of DECKS[d.size]){
+    if (eff(d,c) !== s || gone.has(id(c))) continue;
+    if (!best || pow(c) > pow(best)) best = c;
+  }
+  return best;
+}
+function unseenFor(d, p){
+  const gone = new Set(d.played.map(id)); d.hands[p].forEach(c => gone.add(id(c)));
+  return DECKS[d.size].filter(c => !gone.has(id(c)));
+}
+function lowestCard(d, cards, hand){
+  const isT = c => eff(d,c)==='T';
+  const cnt = s => hand ? hand.filter(c => !isT(c) && c.s===s).length : 0;
+  return cards.slice().sort((x,y)=> (pts(x)-pts(y)) || (isT(x)-isT(y)) || (cnt(x.s)-cnt(y.s)) || (pow(x)-pow(y)))[0];
+}
+
+// Новичок: смотрит только на текущую взятку.
+function chooseEasy(d, p){
+  const L = legal(d, p);
+  if (L.length === 1) return L[0];
+  if (!d.trick.length){
+    const top = highestLeft(d, 'T');
+    const mineTop = top && L.find(c => id(c)===id(top));
+    const myTrumps = L.filter(c => eff(d,c)==='T');
+    if (mineTop && team(p)===d.trumpTeam && myTrumps.length >= 2) return mineTop;
+    const nonT = L.filter(c => eff(d,c) !== 'T');
+    const ace = nonT.find(c => c.r==='A');
+    if (ace) return ace;
+    if (nonT.length){
+      const by = {}; nonT.forEach(c => (by[c.s] = by[c.s] || []).push(c));
+      const suit = Object.keys(by).sort((x,y)=>by[y].length-by[x].length)[0];
+      return by[suit].slice().sort((x,y)=>pow(x)-pow(y))[0];
+    }
+    if (mineTop) return mineTop;
+    return L.slice().sort((x,y)=>pow(x)-pow(y))[0];
+  }
+  const Ld = eff(d, d.trick[0].c);
+  const w = winnerSoFar(d);
+  const last = d.trick.length === 3;
+  if (team(w.p) === team(p)){
+    const top = highestLeft(d, 'T');
+    const strong = last || (eff(d,w.c)==='T' && pow(w.c) >= 23) || (top && id(top)===id(w.c))
+                   || (w.c.r==='A' && eff(d,w.c)!=='T' && d.trick.length >= 2);
+    if (strong){
+      const give = L.filter(c => c.r !== 'J');
+      if (give.length) return give.slice().sort((x,y)=>(pts(y)-pts(x)) || (pow(x)-pow(y)))[0];
+    }
+    return lowestCard(d, L);
+  }
+  const beats = L.filter(c => score(d,c,Ld) > score(d,w.c,Ld)).sort((x,y)=>score(d,x,Ld)-score(d,y,Ld));
+  if (beats.length){
+    const cheap = beats[0];
+    const trickPts = d.trick.reduce((a,e)=>a+pts(e.c),0);
+    if (!last && trickPts === 0 && eff(d,cheap)==='T' && pow(cheap) >= 22) return lowestCard(d, L);
+    if (!last && eff(d,cheap) === Ld && Ld !== 'T'){
+      const ace = beats.find(c => c.r==='A');
+      if (ace && cheap.r === '10') return ace;
+    }
+    return cheap;
+  }
+  return lowestCard(d, L);
+}
+
+// Опытный: помнит вышедшие карты, кто в какой масти пуст, и проверяет, перебьют ли его после.
+function chooseStrong(d, p){
+  const L = legal(d, p);
+  if (L.length === 1) return L[0];
+  const hand = d.hands[p], unseen = unseenFor(d, p);
+  const isT = c => eff(d,c)==='T';
+  const partner = (p+2)%4, opps = [(p+1)%4, (p+3)%4];
+  const voidIn = (q,s) => !!d.voids[q][s];
+  const unseenIn = s => unseen.filter(c => eff(d,c)===s).length;
+
+  if (!d.trick.length){
+    const myT = hand.filter(isT);
+    const topT = highestLeft(d, 'T');
+    const mineTop = topT && hand.find(c => id(c)===id(topT));
+    const oppsMayT = unseenIn('T') > 0 && opps.some(q => !voidIn(q,'T'));
+    // Выбиваем козыри, если старший у нас
+    if (mineTop && oppsMayT && myT.length >= (team(p)===d.trumpTeam ? 2 : 3)) return mineTop;
+    // Старшая оставшаяся карта в боковой масти, которую соперники ещё не бьют
+    const side = hand.filter(c => !isT(c));
+    let best = null, bestScore = -1;
+    for (const s of new Set(side.map(c=>c.s))){
+      const top = highestLeft(d, s);
+      const mine = top && hand.find(c => id(c)===id(top));
+      if (!mine || opps.some(q => voidIn(q,s)) || unseenIn(s) < 2) continue;
+      const sc = pts(mine)*10 + unseenIn(s);
+      if (sc > bestScore){ bestScore = sc; best = mine; }
+    }
+    if (best) return best;
+    // Подкармливаем партнёра под его пустую масть
+    for (const s of new Set(side.map(c=>c.s))){
+      if (voidIn(partner,s) && !voidIn(partner,'T') && !opps.some(q => voidIn(q,s))){
+        const low = side.filter(c => c.s===s).sort((x,y)=>pts(x)-pts(y)||pow(x)-pow(y))[0];
+        if (low && pts(low) <= 4) return low;
+      }
+    }
+    if (side.length){
+      const cnt = s => side.filter(c => c.s===s).length;
+      // Не открываем десятку или короля, над которыми ещё есть старшие
+      const exposed = c => (c.r==='10' || c.r==='K') && highestLeft(d, c.s) && id(highestLeft(d, c.s)) !== id(c);
+      return side.slice().sort((x,y)=> (exposed(x)-exposed(y)) || (pts(x)-pts(y)) || (cnt(y.s)-cnt(x.s)) || (pow(x)-pow(y)))[0];
+    }
+    if (mineTop) return mineTop;
+    return L.slice().sort((x,y)=>pow(x)-pow(y))[0];
+  }
+
+  const Ld = eff(d, d.trick[0].c);
+  const w = winnerSoFar(d);
+  const after = [];
+  for (let q = nextP(d,p), i = d.trick.length + 1; i < 4; i++, q = nextP(d,q)) after.push(q);
+  const oppAfter = after.filter(q => team(q) !== team(p));
+  const trickPts = d.trick.reduce((a,e)=>a+pts(e.c),0);
+  const followLeft = unseenIn(Ld);
+  const couldBeat = (q, card) => {
+    const base = score(d, card, Ld);
+    return unseen.some(c => {
+      if (score(d,c,Ld) <= base) return false;
+      const e = eff(d,c);
+      if (e === Ld) return !voidIn(q, Ld);
+      if (e === 'T') return !voidIn(q,'T') && (voidIn(q, Ld) || followLeft < 2);
+      return false;
+    });
+  };
+  const safe = card => oppAfter.every(q => !couldBeat(q, card));
+
+  if (team(w.p) === team(p)){
+    if (safe(w.c)){
+      const give = L.filter(c => c.r !== 'J');
+      if (give.length) return give.slice().sort((x,y)=>(pts(y)-pts(x)) || (isT(x)-isT(y)) || (pow(x)-pow(y)))[0];
+    }
+    return lowestCard(d, L, hand);
+  }
+  const beats = L.filter(c => score(d,c,Ld) > score(d,w.c,Ld)).sort((x,y)=>score(d,x,Ld)-score(d,y,Ld));
+  if (beats.length){
+    const safeB = beats.filter(safe);
+    if (safeB.length){
+      const nonT = safeB.filter(c => !isT(c));
+      if (nonT.length) return nonT.sort((x,y)=>pts(y)-pts(x))[0];
+      if (trickPts === 0 && safeB[0].r === 'J' && oppAfter.length) return lowestCard(d, L, hand);
+      return safeB[0];
+    }
+    if (trickPts >= 10) return beats[beats.length-1];
+    return lowestCard(d, L, hand);
+  }
+  return lowestCard(d, L, hand);
+}
+
+// Мастер: раздаёт неизвестные карты случайно (с учётом пустых мастей) и доигрывает каждый вариант хода.
+function sampleHands(d, p){
+  const unseen = unseenFor(d, p);
+  const others = [0,1,2,3].filter(q => q !== p);
+  const jc = unseen.find(c => c.r==='J' && c.s==='C');
+  for (let attempt = 0; attempt < 25; attempt++){
+    const relax = attempt === 24;
+    const hands = {}, cap = {};
+    others.forEach(q => { hands[q] = []; cap[q] = d.hands[q].length; });
+    let rest = shuffle(unseen.slice());
+    if (jc && cap[d.holder] > 0){ hands[d.holder].push(jc); cap[d.holder]--; rest = rest.filter(c => c !== jc); }
+    const elig = c => others.filter(q => cap[q] > 0 && (relax || !d.voids[q][eff(d,c)]));
+    rest.sort((a,b) => elig(a).length - elig(b).length);
+    let ok = true;
+    for (const c of rest){
+      const e = elig(c);
+      if (!e.length){ ok = false; break; }
+      let r = Math.random() * e.reduce((a,q)=>a+cap[q],0), pick = e[e.length-1];
+      for (const q of e){ r -= cap[q]; if (r < 0){ pick = q; break; } }
+      hands[pick].push(c); cap[pick]--;
+    }
+    if (ok) return hands;
+  }
+  return null;
+}
+function cloneDeal(d, hands){
+  return { dir:d.dir, aceRule:d.aceRule, size:d.size, trump:d.trump, trumpTeam:d.trumpTeam, holder:d.holder,
+    hands, trick:d.trick.slice(), ledSuits:d.ledSuits.slice(), played:d.played.slice(),
+    taken:d.taken.slice(), tricksCount:d.tricksCount.slice(), voids:d.voids.map(v => ({...v})),
+    lastWin:d.lastWin, turn:d.turn, leader:d.leader };
+}
+function playout(d, policy){
+  while (!handsEmpty(d)){
+    const p = d.turn;
+    if (applyPlay(d, p, policy(d, p))) collect(d);
+  }
+}
+function utility(d, k){
+  const my = d.taken[k], op = d.taken[1-k];
+  let u = (my - op) / 120;
+  if (my > 60) u += 1; else if (op > 60) u -= 1;
+  if (op < 30) u += 0.5;
+  if (my < 30) u -= 0.5;
+  if (d.tricksCount[1-k] === 0) u += 2;
+  if (d.tricksCount[k] === 0) u -= 2;
+  return u;
+}
+function chooseBySimulation(d, p, samples, policy){
+  const L = legal(d, p);
+  if (L.length === 1) return L[0];
+  const tot = L.map(() => 0);
+  for (let i = 0; i < samples; i++){
+    const hs = sampleHands(d, p);
+    if (!hs) continue;
+    L.forEach((c, j) => {
+      const hands = [0,1,2,3].map(q => q === p ? d.hands[p].slice() : hs[q].slice());
+      const w = cloneDeal(d, hands);
+      if (applyPlay(w, p, c)) collect(w);
+      playout(w, policy);
+      tot[j] += utility(w, team(p));
+    });
+  }
+  let bi = 0; tot.forEach((v,j) => { if (v > tot[bi]) bi = j; });
+  return L[bi];
+}
+// Ступени проверены партиями ботов друг против друга (classic, раздачи с перестановкой мест):
+// «Опытный» берёт ~60% раздач у «Новичка», «Мастер» ещё немного сильнее «Опытного».
+function chooseCard(d, p, level){
+  if (level === 'master') return chooseBySimulation(d, p, 40, chooseStrong);
+  if (level === 'strong') return chooseBySimulation(d, p, 12, chooseEasy);
+  return chooseEasy(d, p);
+}
+
+/* ================= Партия и интерфейс ================= */
+let S, timer = null, showRules = false, showSettings = false, draft = null, flash = null, flashTimer = null;
+const animated = new Set();
+const t = () => T[S.lang];
+const nm = p => t().names[p];
+const teamName = k => k === 0 ? t().us : t().them;
+
+function loadSettings(){
+  let saved = {};
+  try { saved = JSON.parse(localStorage.getItem('belka-settings') || '{}') || {}; } catch(e){}
+  const rules = {...PRESETS.classic};
+  if (saved.rules) for (const k of RULE_KEYS) if (typeof saved.rules[k] === typeof rules[k]) rules[k] = saved.rules[k];
+  if (rules.hand !== 7) rules.hand = 8;
+  const level = ['easy','strong','master'].includes(saved.level) ? saved.level : 'strong';
+  return {rules, level};
+}
+function saveSettings(rules, level){ try { localStorage.setItem('belka-settings', JSON.stringify({rules, level})); } catch(e){} }
+function loadLang(){ try { return localStorage.getItem('belka-lang') === 'kz' ? 'kz' : 'ru'; } catch(e){ return 'ru'; } }
+function saveLang(l){ try { localStorage.setItem('belka-lang', l); } catch(e){} }
+
+function newGame(){
+  const lang = S ? S.lang : loadLang();
+  const {rules, level} = loadSettings();
+  S = { lang, rules, level, eyes:[0,0], dealNo:0, suitOf:null, eggs:false, redeals:0,
+        dealer: Math.floor(Math.random()*4), phase:'idle', d:null, msg:'' };
+  animated.clear();
+  startDeal();
+}
+
+function startDeal(){
+  S.d = makeDeal(S.rules, S.dealer, S.suitOf);
+  S.result = null;
+  animated.clear();
+  const d = S.d;
+  if (S.rules.redeal){
+    for (let k = 0, p = nextP(d, S.dealer); k < 4; k++, p = nextP(d, p)){
+      if (p === 0) continue;
+      const r = eligible(d, p);
+      if (r && (r.kind==='low' || r.suit !== d.trump)){
+        S.phase = 'botRedeal'; S.msg = t().botRedeal(nm(p), reasonText(r)); advance(); return;
+      }
+    }
+    const mine = eligible(d, 0);
+    if (mine){ S.phase = 'askRedeal'; S.ask = mine; advance(); return; }
+  }
+  beginPlay();
+}
+function reasonText(r){ return r.kind==='low' ? t().reasonLow(r.n) : t().reasonSuit; }
+
+function doRedeal(){
+  S.redeals++;
+  let note = '';
+  if (S.redeals >= 3){
+    S.redeals = 0;
+    if (S.rules.redealEye){
+      const k = team(S.dealer);
+      S.eyes[k] += 1; note = t().threeRedeals;
+      if (S.eyes[k] >= 12){ S.phase='gameOver'; S.result={winner:k, notes:[note]}; advance(); return; }
+    }
+  }
+  startDeal();
+  if (note) setFlash(note);
+}
+
+function beginPlay(){
+  S.redeals = 0;
+  const d = S.d;
+  if (!S.suitOf){
+    const h = d.holder;
+    // ♣ — держателю, ♠ — партнёру, ♥ — следующему по ходу, ♦ — предыдущему
+    S.suitOf = {}; S.suitOf[h]='C'; S.suitOf[(h+2)%4]='S'; S.suitOf[nextP(d,h)]='H'; S.suitOf[(h + 4 - stepOf(d.dir)) % 4]='D';
+    setFlash(t().firstTrump);
+  } else {
+    setFlash(t().announce(nm(d.holder), SYM[d.trump]));
+  }
+  S.phase = 'play';
+  advance();
+}
+
+function play(p, c){
+  if (applyPlay(S.d, p, c)){
+    S.phase = 'trickEnd';
+    S.msg = t().takes(nm(S.d.lastWin), S.d.trick.reduce((a,e)=>a+pts(e.c),0));
+  }
+  advance();
+}
+
+function collectTrick(){
+  collect(S.d); animated.clear(); sweeping = null;
+  if (handsEmpty(S.d)){ endDeal(); return; }
+  S.phase = 'play';
+  advance();
+}
+
+function endDeal(){
+  const d = S.d, R = S.rules;
+  const [a,b] = d.taken; const notes = [];
+  const res = {a, b, ta:d.tricksCount[0], tb:d.tricksCount[1], winner:null, n:0, notes};
+  if (a === 60 && b === 60){
+    S.eggs = true; notes.push(t().eggs, R.eggs==='four' ? t().eggsNextFour : t().eggsNextDouble);
+  } else {
+    const W = a > 60 ? 0 : 1, Lo = 1 - W;
+    const eggsBefore = S.eggs; S.eggs = false;
+    let n;
+    // «Яйца» (вариант «4 глаза») и первая раздача стоят ровно 4 и 2 глаза: без спаса и козырной надбавки
+    if (eggsBefore && R.eggs === 'four'){ n = 4; notes.push(t().eggsPaid); }
+    else if (S.dealNo === 0 && R.firstDeal2){ n = 2; notes.push(t().firstDealN); }
+    else {
+      n = W === d.trumpTeam ? 1 : 2; notes.push(W === d.trumpTeam ? t().ownTrump : t().foreignTrump);
+      if (R.spas && d.taken[Lo] < 30){ n++; notes.push(t().spas); }
+      if (eggsBefore && R.eggs === 'double'){ n *= 2; notes.push(t().eggsDoubled); }
+    }
+    res.winner = W; res.n = n;
+    S.eyes[W] += n;
+    if (d.tricksCount[Lo] === 0) res.golaya = R.golaya ? 'win' : 'plain';
+    if (res.golaya === 'win' || S.eyes[W] >= 12){ S.dealNo++; S.result = res; S.phase = 'gameOver'; advance(); return; }
+  }
+  S.dealNo++; S.result = res; S.phase = 'dealEnd';
+  advance();
+}
+
+function nextDeal(){ S.dealer = (S.dealer + stepOf(S.rules.dir==='ccw' ? -1 : 1)) % 4; startDeal(); }
+
+function humanPlay(cid){
+  if (S.phase !== 'play' || S.d.turn !== 0) return;
+  const d = S.d;
+  const c = d.hands[0].find(x => id(x)===cid); if (!c) return;
+  if (!legal(d, 0).some(x => id(x)===cid)){
+    const needSuit = d.trick.length && d.hands[0].some(x => eff(d,x)===eff(d,d.trick[0].c));
+    setFlash(needSuit ? t().mustFollow : t().noAce); render(); return;
+  }
+  play(0, c);
+}
+function botMove(){ const p = S.d.turn; play(p, chooseCard(S.d, p, S.level)); }
+
+function setFlash(m){ flash = m; clearTimeout(flashTimer); flashTimer = setTimeout(()=>{ flash = null; if (!showSettings) render(); }, 2600); }
+
+const paused = () => showSettings || showRules;
+function advance(){
+  clearTimeout(timer);
+  if (S.phase === 'play') S.msg = S.d.turn === 0 ? t().yourTurn : t().moving(nm(S.d.turn));
+  if (!paused()){
+    if (S.phase === 'botRedeal') timer = setTimeout(doRedeal, 1500);
+    else if (S.phase === 'play' && S.d.turn !== 0) timer = setTimeout(botMove, S.level === 'master' ? 450 : 700);
+    else if (S.phase === 'trickEnd') timer = setTimeout(() => {
+      // карты взятки уезжают к тому, кто её забрал, затем взятка засчитывается
+      sweeping = S.d.lastWin; render();
+      timer = setTimeout(collectTrick, 380);
+    }, 850);
+  }
+  render();
+}
+
+/* --- Отрисовка --- */
+let sweeping = null, dealShown = null;
+
+// Раскладка значков на картах 7–10, в процентах от карты; нижняя половина перевёрнута, как на настоящей колоде
+const PIPS = (() => {
+  const L = 34, M = 50, R = 66;
+  const seven = [[L,21],[R,21],[M,35.5],[L,50],[R,50],[L,79],[R,79]];
+  return {
+    '7': seven,
+    '8': seven.concat([[M,64.5]]),
+    '9': [[L,21],[R,21],[L,40.5],[R,40.5],[M,50],[L,59.5],[R,59.5],[L,79],[R,79]],
+    '10':[[L,21],[R,21],[M,31],[L,40.5],[R,40.5],[L,59.5],[R,59.5],[M,69],[L,79],[R,79]]
+  };
+})();
+
+// Упрощённые двусторонние фигуры в духе классической колоды: король с короной, дама с тиарой, валет в шапке с пером
+function courtSVG(c){
+  const main = RED[c.s] ? '#c3202b' : '#1c2a46';
+  const acc = RED[c.s] ? '#2f5fae' : '#c3202b';
+  const gold = '#d9a521', skin = '#f4dcc0', ink = '#1a1a1a', hair = '#6b4a2b';
+  const body = `<path d="M12 42 L16.5 31 Q30 24.5 43.5 31 L48 42 Z" fill="${main}"/>
+    <path d="M21.5 30 Q30 35.5 38.5 30 L37.5 33.5 Q30 38.5 22.5 33.5 Z" fill="${gold}"/>
+    <path d="M30 34.5 V42" stroke="${acc}" stroke-width="2.2"/>`;
+  const head = `<circle cx="30" cy="22" r="5.6" fill="${skin}" stroke="${ink}" stroke-width=".5"/>
+    <circle cx="28" cy="21.5" r=".6" fill="${ink}"/><circle cx="32" cy="21.5" r=".6" fill="${ink}"/>`;
+  let top;
+  if (c.r === 'K') top = `${body}
+    <path d="M45 41 L40.5 25" stroke="${gold}" stroke-width="1.5"/><circle cx="40.2" cy="24" r="1.7" fill="${gold}"/>
+    ${head}<path d="M25 25 Q30 31.5 35 25 Q30 27.5 25 25 Z" fill="${hair}"/>
+    <path d="M23.4 18 L23.8 10.5 L27 14.5 L30 8.5 L33 14.5 L36.2 10.5 L36.6 18 Z" fill="${gold}" stroke="${ink}" stroke-width=".5"/>
+    <circle cx="30" cy="15.5" r="1" fill="${acc}"/>`;
+  else if (c.r === 'Q') top = `${body}
+    <circle cx="16.5" cy="35" r="2.3" fill="${acc}"/><circle cx="16.5" cy="35" r=".9" fill="${gold}"/>
+    <path d="M23.5 27 Q21 14 30 14 Q39 14 36.5 27 L34.5 22 Q30 17.5 25.5 22 Z" fill="${hair}"/>
+    ${head}<path d="M24 17 Q30 10.5 36 17" stroke="${gold}" stroke-width="1.6" fill="none"/>
+    <circle cx="30" cy="12.2" r="1.4" fill="${acc}"/>`;
+  else top = `${body}
+    <path d="M15 41 L19 24" stroke="${ink}" stroke-width="1"/><path d="M17.6 24.5 L19 19.5 L20.6 24.8 Z" fill="${gold}"/>
+    <path d="M24.4 26 Q23.6 21 25 19 L35 19 Q36.4 21 35.6 26 Z" fill="${hair}"/>
+    ${head}<path d="M22.6 19 Q24 11.5 31 11.5 Q37.5 11.5 38.2 18.4 Z" fill="${acc}"/>
+    <path d="M37 15.5 Q44 8.5 46.5 12.5 Q41.5 12.8 38.2 17.6 Z" fill="${gold}"/>`;
+  return `<svg class="court" viewBox="0 0 60 84" aria-hidden="true">
+    <rect x="4.5" y="5.5" width="51" height="73" rx="3" fill="none" stroke="${main}" stroke-width=".8" opacity=".55"/>
+    <g>${top}</g><g transform="rotate(180 30 42)">${top}</g>
+    <path d="M4.5 42 H55.5" stroke="${main}" stroke-width=".6" opacity=".45"/></svg>`;
+}
+
+// Небольшой стабильный наклон карты на сукне, свой у каждой карты
+const tiltOf = c => ((c.r.charCodeAt(0) * 7 + c.s.charCodeAt(0) * 13) % 13) - 6;
+
+function cardHTML(c, opt = {}){
+  const d = S.d;
+  const r = RED[c.s] ? ' r' : '';
+  const tr = eff(d,c)==='T' ? ' tr' : '';
+  const lab = LABEL[c.r], sym = SYM[c.s];
+  let mid;
+  if (c.r === 'J' || c.r === 'Q' || c.r === 'K') mid = courtSVG(c);
+  else if (c.r === 'A') mid = `<span class="ace">${sym}</span>`;
+  else mid = PIPS[c.r].map(([x,y]) => `<span class="pip${y>52?' dn':''}" style="left:${x}%;top:${y}%">${sym}</span>`).join('');
+  const inner = `<span class="ix">${lab}<s>${sym}</s></span>${mid}<span class="ix b">${lab}<s>${sym}</s></span>${c.r==='J'?'<span class="star" aria-hidden="true">★</span>':''}`;
+  const aria = `${lab}${sym}`;
+  const style = opt.style ? ` style="${opt.style}"` : '';
+  const cls = `card${r}${tr}${opt.cls ? ' ' + opt.cls : ''}`;
+  if (opt.button) return `<button class="${cls} ${opt.ok?'ok':'no'}" data-c="${id(c)}" aria-label="${aria}"${style} ${opt.ok?'':'aria-disabled="true"'}>${inner}</button>`;
+  return `<div class="${cls}" role="img" aria-label="${aria}"${style}>${inner}</div>`;
+}
+
+function sixHTML(lit){
+  let s = '<span class="six" aria-hidden="true">';
+  for (let i=0;i<6;i++) s += `<i class="${i<lit?'on':''}">${'♥'}</i>`;
+  return s + '</span>';
+}
+// Счёт как в живой игре: две шестёрки на команду, вторая переворачивается, когда открыты все шесть глаз
+function teamHTML(k){
+  const e = S.eyes[k];
+  const second = e >= 6 ? sixHTML(e - 6) : '<span class="six back" aria-hidden="true"></span>';
+  return `<div class="score ${k===0?'us':'them'}" title="${e} ${t().eyesWord} ${t().of12}">
+    <span class="tname">${teamName(k)}</span>
+    <span class="srow"><span class="sixes">${sixHTML(Math.min(e,6))}${second}</span><span class="tnum">${e}<span>/12</span></span></span></div>`;
+}
+
+function plateHTML(p){
+  const d = S.d, L = t();
+  const turn = S.phase==='play' && d.turn===p;
+  const chips = [];
+  if (S.dealer===p) chips.push(`<span class="dbtn" title="${L.dealer}">D</span>`);
+  if (d.holder===p) chips.push(`<span class="tchip${RED[d.trump]?' r':''}" title="${L.trump}">${SYM[d.trump]}</span>`);
+  const role = p===2 ? `<small>${L.partner}</small>` : '';
+  return `<div class="plate ${team(p)===0?'us':'them'}${turn?' turn':''}">
+    <span class="ava" aria-hidden="true">${nm(p).charAt(0)}</span>
+    <span class="pname"><span>${nm(p)}</span>${role}</span>${chips.length?`<span class="chips">${chips.join('')}</span>`:''}</div>`;
+}
+
+function seatHTML(p){
+  const d = S.d;
+  if (p === 0){
+    const myTurn = S.phase==='play' && d.turn===0;
+    const legalSet = myTurn ? new Set(legal(d,0).map(id)) : null;
+    const dealing = dealShown !== d;
+    const from = {0:['0','80%'],1:['-320%','-140%'],2:['0','-320%'],3:['320%','-140%']}[S.dealer];
+    const n = d.hands[0].length, midI = (n-1)/2;
+    const cards = d.hands[0].map((c,i) => {
+      const off = i - midI;
+      const style = `--rot:${(off*3.2).toFixed(1)}deg;--dy:${((off*off - midI*midI)*1.3).toFixed(1)}px;--i:${i};--dx:${from[0]};--dyy:${from[1]}`;
+      return cardHTML(c, {button:true, ok: !myTurn || legalSet.has(id(c)), style, cls: dealing ? 'deal' : ''});
+    }).join('');
+    return `<div class="seat bottom"><div class="hand ${myTurn?'':'idle'}">${cards}</div>${plateHTML(0)}</div>`;
+  }
+  const n = d.hands[p].length;
+  // Партнёр напротив держит веер рубашками к нам, соседи по бокам — стопку со счётчиком карт
+  const cards = p === 2
+    ? `<div class="fan" aria-label="${n}">${Array.from({length:n}, (_,i) => `<span class="back" style="--i:${i - (n-1)/2 + 3.5}"></span>`).join('')}</div>`
+    : (n ? `<span class="stack" aria-label="${n}"><span class="back"></span><span class="back"></span><b>${n}</b></span>` : '');
+  return `<div class="seat ${SEAT[p]}">${plateHTML(p)}${cards}</div>`;
+}
+
+const ICONS = {
+  rules:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.3a2.5 2.5 0 0 1 4.9.7c0 1.7-2.5 2.1-2.5 3.8"/><path d="M12 17.3h.01"/></svg>',
+  settings:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/></svg>',
+  newGame:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14.3-4.9L4 8"/><path d="M4 3v5h5"/><path d="M4 13a8 8 0 0 0 14.3 4.9L20 16"/><path d="M20 21v-5h-5"/></svg>',
+  rotate:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="2.5" width="10" height="19" rx="2"/><path d="M11 18.5h2"/><path d="M2.5 9a8 8 0 0 1 3-5.5"/><path d="M5.5 1.5v2h-2"/></svg>'
+};
+
+function trickHTML(){
+  const d = S.d;
+  const cls = sweeping !== null ? ` sweep to${sweeping}` : '';
+  let s = `<div class="trick${cls}">`;
+  for (const e of d.trick){
+    const fly = !animated.has(id(e.c)); animated.add(id(e.c));
+    s += `<div class="slot p${e.p}${d.lastWin===e.p && sweeping===null?' win':''}">${cardHTML(e.c,{cls: fly && sweeping===null ? 'fly' : '', style:`--tilt:${tiltOf(e.c)}deg`})}</div>`;
+  }
+  return s + '</div>';
+}
+
+function settingsHTML(){
+  const L = t(), R = draft.rules, pre = presetOf(R);
+  const changed = RULE_KEYS.some(k => R[k] !== S.rules[k]);
+  const lv = ['easy','strong','master'].map(k => `<button class="lvl" data-lvl="${k}" aria-pressed="${draft.level===k}"><b>${L.levels[k][0]}</b><span>${L.levels[k][1]}</span></button>`).join('');
+  const sel = (key, opts, labels) => `<select id="set-${key}">${opts.map(o => `<option value="${o}" ${String(R[key])===String(o)?'selected':''}>${labels[o]}</option>`).join('')}</select>`;
+  const chk = (key, disabled) => `<label class="chk ${disabled?'off':''}"><input type="checkbox" id="set-${key}" ${R[key]?'checked':''} ${disabled?'disabled':''}><span>${L.opt[key]}</span></label>`;
+  return `<div class="ov"><div class="panel wide" role="dialog" aria-label="${L.settings}"><h2>${L.settings}</h2>
+    <h3>${L.level}</h3><div class="levels">${lv}</div>
+    <h3>${L.rulesSet}</h3>
+    <select id="set-preset" aria-label="${L.rulesSet}">${['classic','ccw','short','custom'].filter(k => k!=='custom' || pre==='custom').map(k => `<option value="${k}" ${k===pre?'selected':''}>${L.presets[k]}</option>`).join('')}</select>
+    <div class="opts">
+      <label class="fld"><span>${L.dir}</span>${sel('dir',['cw','ccw'],L.dirs)}</label>
+      <label class="fld"><span>${L.hand}</span>${sel('hand',[8,7],L.hands)}</label>
+      <label class="fld"><span>${L.eggsOpt}</span>${sel('eggs',['four','double'],L.eggsOpts)}</label>
+    </div>
+    <div class="opts">
+      ${chk('aceRule')}${chk('spas')}${chk('firstDeal2')}${chk('golaya')}${chk('redeal')}${chk('redealEye', !R.redeal)}
+    </div>
+    <p class="note">${L.setNote}</p>
+    <div class="row"><button class="btn" data-a="closeSettings">${L.cancel}</button><button class="btn primary" data-a="applySettings">${changed ? L.applyNew : L.save}</button></div>
+  </div></div>`;
+}
+
+function overlayHTML(){
+  const L = t();
+  if (showSettings) return settingsHTML();
+  if (showRules){
+    return `<div class="ov"><div class="panel" role="dialog" aria-label="${L.rulesTitle}"><h2>${L.rulesTitle}</h2>
+      <ul>${L.rulesList(S.rules).map(x=>`<li>${x}</li>`).join('')}</ul>
+      <div class="row"><button class="btn primary" data-a="closeRules">${L.close}</button></div></div></div>`;
+  }
+  if (S.phase === 'askRedeal'){
+    return `<div class="ov"><div class="panel" role="dialog"><h2>${L.redeal}?</h2><p>${L.askRedeal(reasonText(S.ask))}</p>
+      <div class="row"><button class="btn" data-a="play">${L.play}</button><button class="btn primary" data-a="redeal">${L.redeal}</button></div></div></div>`;
+  }
+  if (S.phase === 'dealEnd' || S.phase === 'gameOver'){
+    const r = S.result, over = S.phase === 'gameOver';
+    const title = over ? (r.winner===0 ? L.win : L.lose) : L.dealEnd;
+    let body = '';
+    if (r.a !== undefined){
+      body += `<div class="res"><span></span><span class="h">${L.pointsH}</span><span class="h">${L.tricksH}</span>
+        <span class="us">${L.us}</span><b class="us">${r.a}</b><span>${r.ta}</span>
+        <span class="them">${L.them}</span><b class="them">${r.b}</b><span>${r.tb}</span></div>`;
+    }
+    const notes = [];
+    if (r.golaya) notes.push(`<span class="big">${r.golaya==='win' ? L.golaya : L.golayaPlain}</span>`);
+    if (r.winner !== null && r.n) notes.push(`<span class="big">${L.gets(teamName(r.winner), r.n)}</span>`);
+    r.notes.forEach(n => notes.push(`<span>${n}</span>`));
+    if (over) notes.push(`<span class="big">${L.finalScore(S.eyes[0], S.eyes[1])}</span>`);
+    return `<div class="ov"><div class="panel" role="dialog"><h2>${title}</h2>${body}<div class="notes">${notes.join('')}</div>
+      <div class="row"><button class="btn primary" data-a="${over?'newGame':'next'}">${over?L.newGame:L.next}</button></div></div></div>`;
+  }
+  return '';
+}
+
+function render(){
+  const L = t(), d = S.d;
+  const msg = flash || S.msg;
+  const focusId = document.activeElement && document.activeElement.id;
+  const trumpLine = `${L.trump} · ${S.dealNo===0 ? L.firstDeal : L.trumpOf(teamName(d.trumpTeam))}`;
+  document.documentElement.lang = S.lang === 'kz' ? 'kk' : 'ru';
+  document.getElementById('app').innerHTML = `
+  <div class="shell">
+    <header class="topbar">
+      <h1 class="brand">Белка</h1>
+      <div class="spacer"></div>
+      <div class="lang" role="group" aria-label="Язык / Тіл">
+        <button data-a="ru" aria-pressed="${S.lang==='ru'}">РУС</button><button data-a="kz" aria-pressed="${S.lang==='kz'}">ҚАЗ</button>
+      </div>
+      <button class="icon" data-a="rules" aria-label="${L.rules}" title="${L.rules}">${ICONS.rules}</button>
+      <button class="icon" data-a="settings" aria-label="${L.settings}" title="${L.settings}">${ICONS.settings}</button>
+      <button class="icon" data-a="newGame" aria-label="${L.newGame}" title="${L.newGame}">${ICONS.newGame}</button>
+    </header>
+    <div class="status">
+      ${teamHTML(0)}
+      <div class="plaque" title="${trumpLine}"><span class="tile ${RED[d.trump]?'r':''}">${SYM[d.trump]}</span>
+        <span class="txt"><span class="lbl">${trumpLine}</span>
+        <span class="pts">${L.pts} <b>${d.taken[0]}</b>:<b>${d.taken[1]}</b> · ${L.tricks} <b>${d.tricksCount[0]}</b>:<b>${d.tricksCount[1]}</b></span></span></div>
+      ${teamHTML(1)}
+    </div>
+    <main class="stage">
+      <div class="table"><div class="felt">
+        ${seatHTML(2)}${seatHTML(1)}
+        <div class="mid">${trickHTML()}</div>
+        ${seatHTML(3)}
+        <div class="msg${msg ? '' : ' empty'}" role="status">${msg || '&nbsp;'}</div>
+      </div></div>
+      ${seatHTML(0)}
+    </main>
+  </div>
+  <div class="rotate" role="alert">${ICONS.rotate}<p>${L.rotate}</p></div>
+  ${overlayHTML()}`;
+  dealShown = d;
+  if (focusId){ const el = document.getElementById(focusId); if (el) el.focus(); }
+}
+
+document.addEventListener('click', e => {
+  const c = e.target.closest('[data-c]');
+  if (c){ humanPlay(c.dataset.c); return; }
+  const lv = e.target.closest('[data-lvl]');
+  if (lv){ draft.level = lv.dataset.lvl; render(); return; }
+  const a = e.target.closest('[data-a]'); if (!a) return;
+  switch (a.dataset.a){
+    case 'ru': case 'kz': S.lang = a.dataset.a; saveLang(S.lang); advance(); break;
+    case 'rules': showRules = true; advance(); break;
+    case 'closeRules': showRules = false; advance(); break;
+    case 'settings': draft = {rules:{...S.rules}, level:S.level}; showSettings = true; showRules = false; advance(); break;
+    case 'closeSettings': showSettings = false; advance(); break;
+    case 'applySettings': {
+      const changed = RULE_KEYS.some(k => draft.rules[k] !== S.rules[k]);
+      saveSettings(draft.rules, draft.level);
+      S.level = draft.level; showSettings = false;
+      if (changed) newGame(); else advance();
+      break;
+    }
+    case 'newGame': showRules = false; newGame(); break;
+    case 'next': nextDeal(); break;
+    case 'redeal': doRedeal(); break;
+    case 'play': beginPlay(); break;
+  }
+});
+document.addEventListener('change', e => {
+  const el = e.target;
+  if (!draft || !el.id || !el.id.startsWith('set-')) return;
+  const key = el.id.slice(4);
+  if (key === 'preset'){ if (PRESETS[el.value]) draft.rules = {...PRESETS[el.value]}; }
+  else if (el.type === 'checkbox') draft.rules[key] = el.checked;
+  else if (key === 'hand') draft.rules.hand = Number(el.value);
+  else draft.rules[key] = el.value;
+  render();
+});
+
+function start(data){
+  if (data && data.S && data.S.d && data.S.rules){ S = data.S; advance(); }
+  else newGame();
+}
+window.claude?.hot?.snapshot?.(() => ({ S }));
+window.claude?.hot?.ready ? window.claude.hot.ready(start) : start(window.claude?.hot?.data ?? {});
+})();
+</script>
